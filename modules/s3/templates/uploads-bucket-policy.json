@@ -1,0 +1,38 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Allow full access to the uploaded IAM role",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": [
+          "${uploader_iam_role_arn}"
+        ]
+      },
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::${env}.uploads",
+        "arn:aws:s3:::${env}.uploads/*"
+      ]
+    },
+    {
+      "Sid": "Allow access from our domains",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::${env}.uploads/*",
+      "Condition": {
+        "StringLike": {
+          "aws:Referer": [
+            "https://youtrip.hk/*",
+            "https://www.youtrip.hk/*",
+            "https://*.youtrip.hk/*",
+            "https://www.*.youtrip.hk/*"
+          ]
+        }
+      }
+    }
+  ]
+}

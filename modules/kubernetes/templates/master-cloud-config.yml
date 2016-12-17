@@ -1,0 +1,106 @@
+#cloud-config
+
+hostname: "${hostname}"
+
+write_files:
+  - path: /etc/ssl/certs/ca.pem
+    permissions: 0600
+    encoding: base64
+    content: |
+      ${ca_cert}
+  - path: /etc/kubernetes/ssl/ca.pem
+    permissions: 0600
+    encoding: base64
+    content: |
+      ${ca_cert}
+  - path: /etc/kubernetes/ssl/master-key.pem
+    permissions: 0600
+    encoding: base64
+    content: |
+      ${master_key}
+  - path: /etc/kubernetes/ssl/master.pem
+    permissions: 0600
+    encoding: base64
+    content: |
+      ${master_cert}
+  - path: /etc/profile.d/etcd-envvars.sh
+    permissions: 0644
+    content: |
+      # for etcdctl
+      export ETCDCTL_PEERS=${etcd_endpoints}
+      export ETCDCTL_CA_FILE=/etc/ssl/certs/ca.pem
+  - path: /etc/flannel/options.env
+    permissions: 0644
+    content: |
+      FLANNELD_IFACE=$private_ipv4 # replace with publicly routable IP
+      FLANNELD_ETCD_ENDPOINTS=${etcd_endpoints}
+
+coreos:
+  flannel:
+    ip_masq: true
+    interface: eth2
+
+  update:
+    reboot-strategy: off
+
+  units:
+    - name: update-ca-certificates.service
+      command: start
+      content: |
+        [Unit]
+        Description=Updateds CA certificates
+        Before=docker.service
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/sbin/update-ca-certificates
+        [Install]
+        WantedBy=multi-user.target
+    - name: flanneld.service
+      drop-ins:
+        - name: 40-ExecStartPre-symlink.conf
+          content: |
+            [Service]
+            ExecStartPre=/usr/bin/ln -sf /etc/flannel/options.env /run/flannel/options.env
+      command: start
+    - name: docker.service
+      command: start
+      drop-ins:
+        - name: "10-docker0.conf"
+          content: |
+            [Service]
+            Environment="DOCKER_OPTS=--bip=172.17.0.1/24 --fixed-cidr=172.17.0.0/24"
+        - name: 51-docker-mirror.conf
+          content: |
+            [Unit]
+            # making sure that flanneld finished startup, otherwise containers
+            # won't land in flannel's network...
+            Requires=flanneld.service
+            After=flanneld.service
+            Restart=Always
+    - name: kubelet.service
+      command: start
+      content: |
+        [Service]
+        ExecStartPre=/usr/bin/mkdir -p /etc/kubernetes/manifests
+        ExecStartPre=/usr/bin/mkdir -p /var/log/containers
+
+        Environment=KUBELET_VERSION=${k8s_version}
+        Environment="RKT_OPTS=--volume var-log,kind=host,source=/var/log \
+          --mount volume=var-log,target=/var/log \
+          --volume dns,kind=host,source=/etc/resolv.conf \
+          --mount volume=dns,target=/etc/resolv.conf"
+
+        ExecStart=/usr/lib/coreos/kubelet-wrapper \
+          --api-servers=http://127.0.0.1:8080 \
+          --network-plugin-dir=/etc/kubernetes/cni/net.d \
+          --network-plugin=${network_plugin} \
+          --register-schedulable=false \
+          --allow-privileged=true \
+          --config=/etc/kubernetes/manifests \
+          --hostname-override=$private_ipv4 \ # replace with publicly routable IP
+          --cluster-dns=${dns_service_ip} \
+          --cluster-domain=cluster.local
+        Restart=always
+        RestartSec=10
+        [Install]
+        WantedBy=multi-user.target

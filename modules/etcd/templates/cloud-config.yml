@@ -1,0 +1,135 @@
+#cloud-config
+
+hostname: "${hostname}"
+
+write_files:
+  - path: /etc/ssl/certs/ca.pem
+    permissions: 0600
+    encoding: base64
+    content: |
+      ${ca_cert}
+  - path: /etc/ssl/certs/etcd-server-key.pem
+    permissions: 0600
+    encoding: base64
+    content: |
+      ${server_key}
+  - path: /etc/ssl/certs/etcd-server.pem
+    permissions: 0600
+    encoding: base64
+    content: |
+      ${server_cert}
+  - path: /etc/ssl/certs/etcd-client-server-key.pem
+    permissions: 0600
+    encoding: base64
+    content: |
+      ${client_server_key}
+  - path: /etc/ssl/certs/etcd-client-server.pem
+    permissions: 0600
+    encoding: base64
+    content: |
+      ${client_server_cert}
+  - path: /etc/ssl/certs/etcd-client-key.pem
+    permissions: 0600
+    encoding: base64
+    content: |
+      ${client_key}
+  - path: /etc/ssl/certs/etcd-client.pem
+    permissions: 0600
+    encoding: base64
+    content: |
+      ${client_cert}
+  - path: /etc/profile.d/etcd-envvars.sh
+    permissions: 0644
+    content: |
+      # for etcdctl
+      export ETCDCTL_PEERS=${etcd_endpoints}
+      export ETCDCTL_CA_FILE=/etc/ssl/certs/ca.pem
+      export ETCDCTL_CERT_FILE=/etc/ssl/certs/etcd-client.pem
+      export ETCDCTL_KEY_FILE=/etc/ssl/certs/etcd-client-key.pem
+
+      # for lockmisthctl. Note: LOCKSMITHD_ENDPOINT only take one url
+      export LOCKSMITHCTL_ENDPOINT=${endpoint}
+      export LOCKSMITHCTL_ETCD_CAFILE=$ETCDCTL_CA_FILE
+      export LOCKSMITHCTL_ETCD_CERTFILE=$ETCDCTL_CERT_FILE
+      export LOCKSMITHCTL_ETCD_KEYFILE=$ETCDCTL_KEY_FILE
+
+coreos:
+  update:
+    reboot-strategy: etcd-lock
+
+  locksmith:
+    endpoint: ${endpoint}:2379
+    etcd_cafile: /etc/ssl/certs/ca.pem
+    etcd_certfile: /etc/ssl/certs/etcd-client.pem
+    etcd_keyfile: /etc/ssl/certs/etcd-client-key.pem
+    window_start: 00:00
+    window_length: 2h
+
+  units:
+    - name: update-ca-certificates.service
+      command: start
+      content: |
+        [Unit]
+        Description=Updateds CA certificates
+        Before=docker.service
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/sbin/update-ca-certificates
+        [Install]
+        WantedBy=multi-user.target
+    - name: "docker.service"
+      drop-ins:
+        - name: "10-docker0.conf"
+          content: |
+            [Service]
+            Environment="DOCKER_OPTS=--bip=172.17.0.1/24 --fixed-cidr=172.17.0.0/24"
+    - name: locksmithd.service
+      dropins:
+        - name: 40-etcd-lock.conf
+          contents: |
+            [Service]
+            Environment="REBOOT_STRATEGY=etcd-lock"
+    - name: etcd3.service
+      command: start
+      content: |
+        [Unit]
+        Description=Runs etcd3
+        [Service]
+        Restart=on-failure
+        RestartSec=10s
+        KillMode=none
+        EnvironmentFile=/etc/environment
+        ExecStartPre=-/usr/bin/docker stop ${hostname}
+        ExecStartPre=-/usr/bin/docker rm ${hostname}
+        ExecStart=/usr/bin/docker run \
+          -v /etc/ssl/certs:/etc/ssl/certs \
+          -p 2380:2380 -p 2379:2379 \
+          --name ${hostname} \
+          -e ETCD_TRUSTED_CA_FILE=/etc/ssl/certs/ca.pem \
+          -e ETCD_CA_FILE=/etc/ssl/certs/ca.pem \
+          -e ETCD_CERT_FILE=/etc/ssl/certs/etcd-client.pem \
+          -e ETCD_KEY_FILE=/etc/ssl/certs/etcd-client-key.pem \
+          -e ETCD_CLIENT_CERT_AUTH=true \
+          -e ETCD_PEER_TRUSTED_CA_FILE=/etc/ssl/certs/ca.pem \
+          -e ETCD_PEER_CA_FILE=/etc/ssl/certs/ca.pem \
+          -e ETCD_PEER_CERT_FILE=/etc/ssl/certs/etcd-client-server.pem \
+          -e ETCD_PEER_KEY_FILE=/etc/ssl/certs/etcd-client-server-key.pem \
+          -e ETCD_PEER_CLIENT_CERT_AUTH=true \
+          -e ETCD_HEARTBEAT_INTERVAL=300 \
+          -e ETCD_ELECTION_TIMEOUT=3000 \
+          -e ETCD_SNAPSHOT_COUNT=5000 \
+          -e ETCDCTL_ENDPOINTS=${etcd_endpoints} \
+          -e ETCDCTL_CACERT=/etc/ssl/certs/ca.pem \
+          -e ETCDCTL_CERT=/etc/ssl/certs/etcd-client.pem \
+          -e ETCDCTL_KEY=/etc/ssl/certs/etcd-client-key.pem \
+          -e ETCDCTL_API=3 \
+          -e ETCDCTL_DIAL_TIMEOUT=3s \
+          quay.io/coreos/etcd:v3.0.15 etcd \
+          -discovery-srv stage-etcd.local \
+          -initial-cluster-token stage-etcd \
+          -advertise-client-urls ${endpoint}:2379 \
+          -initial-advertise-peer-urls ${endpoint}:2380 \
+          -listen-client-urls https://0.0.0.0:2379 \
+          -listen-peer-urls https://0.0.0.0:2380
+        [Install]
+        WantedBy=multi-user.target
