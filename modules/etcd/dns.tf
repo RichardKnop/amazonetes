@@ -1,7 +1,7 @@
 resource "aws_route53_record" "etcd_alias" {
   count = "${length(var.etcd_hostnames)}"
   zone_id = "${var.private_dns_zone_id}"
-  name = "etcd${count.index}.${var.cluster_id}.${var.private_dns_zone_name}"
+  name = "${var.etcd_hostnames[count.index]}.${var.private_dns_zone_name}"
   type = "A"
   ttl = "60"
   records = ["${aws_instance.etcd.*.private_ip[count.index]}"]

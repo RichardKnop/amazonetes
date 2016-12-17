@@ -143,6 +143,12 @@ variable "dns_service_ip" {
   default     = "10.3.0.10"
 }
 
+variable "cluster_domain" {
+  type        = "string"
+  description = "Cluster domain to use for pods and services"
+  default     = "cluster.local"
+}
+
 variable "force_destroy" {
   type        = "string"
   description = "Delete S3 buckets content"

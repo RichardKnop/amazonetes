@@ -250,7 +250,7 @@ coreos:
           --config=/etc/kubernetes/manifests \
           --hostname-override=$private_ipv4 \ # replace with publicly routable IP
           --cluster-dns=${dns_service_ip} \
-          --cluster-domain=cluster.local
+          --cluster-domain=${cluster_domain}
         Restart=always
         RestartSec=10
         [Install]

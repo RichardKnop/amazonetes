@@ -2,7 +2,7 @@ data "template_file" "master_cloud_config" {
   template = "${file("${path.module}/templates/master-cloud-config.yml")}"
 
   vars {
-    hostname = "${var.env}-master"
+    hostname = "${var.master_hostname}"
     ca_cert = "${base64encode(var.ca_cert_pem)}"
     master_key = "${base64encode(tls_private_key.master.private_key_pem)}"
     master_cert = "${base64encode(tls_locally_signed_cert.master.cert_pem)}"
@@ -11,6 +11,7 @@ data "template_file" "master_cloud_config" {
     network_plugin = "" # leave this blank unless you want to use Calico
     dns_service_ip = "${var.dns_service_ip}"
     pod_network = "${var.pod_network}"
+    cluster_domain = "${var.cluster_domain}"
   }
 }
 
