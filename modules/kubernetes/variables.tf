@@ -63,6 +63,11 @@ variable "default_security_group_id" {
   description = "Default security group ID"
 }
 
+variable "etcd_client_security_group_id" {
+  type        = "string"
+  description = "Security group which allows connection to etcd cluster"
+}
+
 variable "master_common_name" {
   type        = "string"
   description = "Master node common name"
@@ -108,19 +113,25 @@ variable "worker_private_ip_from" {
   description = "Worker private IPs will start from 10.X.X.worker_private_ip_from"
 }
 
-variable "POD_NETWORK" {
+variable "kubernetes_version" {
+  type        = "string"
+  description = "Kubernetes version to deploy"
+  default     = "v1.5.1_coreos.0"
+}
+
+variable "pod_network" {
   type        = "string"
   description = "The CIDR network to use for pod IPs. Each pod launched in the cluster will be assigned an IP out of this range. This network must be routable between all hosts in the cluster. In a default installation, the flannel overlay network will provide routing to this network."
   default     = "10.2.0.0/16"
 }
 
-variable "SERVICE_IP_RANGE" {
+variable "service_ip_range" {
   type        = "string"
   description = "The CIDR network to use for service cluster VIPs (Virtual IPs). Each service will be assigned a cluster IP out of this range. This must not overlap with any IP ranges assigned to the pod_network, or other existing network infrastructure. Routing to these VIPs is handled by a local kube-proxy service to each host, and are not required to be routable between hosts."
   default     = "10.3.0.0/24"
 }
 
-variable "K8S_SERVICE_IP" {
+variable "kubernetes_service_ip" {
   type        = "string"
   description = "The VIP (Virtual IP) address of the Kubernetes API Service. If the service_ip_range is changed above, this must be set to the first IP in that range."
   default     = "10.3.0.1"

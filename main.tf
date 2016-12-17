@@ -73,13 +73,13 @@ module "kubernetes" {
   coreos_ami = "${var.coreos_ami}"
   deployer_key_name = "${module.vpc.deployer_key_name}"
   default_security_group_id = "${module.vpc.default_security_group_id}"
+  etcd_client_security_group_id = "${module.etcd.etcd_client_security_group_id}"
 
   master_common_name = "master"
   master_hostname = "master.${var.env}-master"
   master_instance_type = "${var.master_instance_type}"
   master_private_ip = "${cidrhost(element(private_subnet_cidrs, 0), 20)}"
   etcd_endpoints = "${module.etcd.endpoints}"
-
   worker_common_names = [
     "worker0",
     "worker1",
@@ -94,7 +94,7 @@ module "kubernetes" {
   force_destroy = "${var.force_destroy}"
 }
 
-/*module "registry" {
+module "registry" {
   source = "./modules/registry"
 
   env = "${var.env}"
@@ -112,11 +112,14 @@ module "kubernetes" {
   coreos_ami = "${var.coreos_ami}"
   deployer_key_name = "${module.vpc.deployer_key_name}"
   default_security_group_id = "${module.vpc.default_security_group_id}"
-  user_security_group_ids = []
+  user_security_group_ids = [
+    "${module.kubernetes.master_security_group_id}",
+    "${module.kubernetes.worker_security_group_id}",
+  ]
 
   registry_instance_type = "${var.registry_instance_type}"
   registry_private_ip = "${cidrhost(element(private_subnet_cidrs, 0), 5)}"
   registry_port = "${var.registry_port}"
 
   force_destroy = "${var.force_destroy}"
-}*/
+}

@@ -7,9 +7,10 @@ data "template_file" "master_cloud_config" {
     master_key = "${base64encode(tls_private_key.master.private_key_pem)}"
     master_cert = "${base64encode(tls_locally_signed_cert.master.cert_pem)}"
     etcd_endpoints = "${var.etcd_endpoints}"
-    k8s_version = "v1.4.3_coreos.0"
-    network_plugin = ""
-    dns_service_ip = "10.3.0.10"
+    kubernetes_version = "${var.kubernetes_version}"
+    network_plugin = "" # leave this blank unless you want to use Calico
+    dns_service_ip = "${var.dns_service_ip}"
+    pod_network = "${var.pod_network}"
   }
 }
 
@@ -27,6 +28,8 @@ resource "aws_instance" "master" {
 
   vpc_security_group_ids = [
     "${var.default_security_group_id}",
+    "${aws_security_group.master.id}",
+    "${var.etcd_client_security_group_id}",
   ]
 
   key_name = "${var.deployer_key_name}"
