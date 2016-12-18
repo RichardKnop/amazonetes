@@ -210,7 +210,7 @@ coreos:
              --ca-file /etc/kubernetes/ssl/ca.pem \
              --cert-file /etc/kubernetes/ssl/master.pem \
              --key-file /etc/kubernetes/ssl/master-key.pem \
-             mk /coreos.com/network/config '{"Network":"${pod_network}", "Backend": {"Type": "vxlan"}}'
+             set /coreos.com/network/config '{"Network":"${pod_network}", "Backend": {"Type": "vxlan"}}'
     - name: docker.service
       command: start
       drop-ins:
