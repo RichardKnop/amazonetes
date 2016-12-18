@@ -36,6 +36,9 @@ write_files:
     content: |
       FLANNELD_IFACE=$private_ipv4 # replace with publicly routable IP
       FLANNELD_ETCD_ENDPOINTS=${etcd_endpoints}
+      FLANNELD_ETCD_CAFILE=/etc/kubernetes/ssl/ca.pem
+      FLANNELD_ETCD_CERTFILE=/etc/kubernetes/ssl/master.pem
+      FLANNELD_ETCD_KEYFILE=/etc/kubernetes/ssl/master-key.pem
   - path: /etc/kubernetes/manifests/kube-apiserver.yaml
     permissions: 0644
     content: |
@@ -184,6 +187,10 @@ coreos:
   flannel:
     ip_masq: true
     interface: eth2
+    etcd_endpoints: "${etcd_endpoints}"
+    etcd_cafile: /etc/kubernetes/ssl/ca.pem
+    etcd_certfile: /etc/kubernetes/ssl/master.pem
+    etcd_keyfile: /etc/kubernetes/ssl/master-key.pem
 
   update:
     reboot-strategy: off
@@ -202,13 +209,10 @@ coreos:
         WantedBy=multi-user.target
     - name: flanneld.service
       drop-ins:
-        - name: 40-ExecStartPre-symlink.conf
-          content: |
-            [Service]
-            ExecStartPre=/usr/bin/ln -sf /etc/flannel/options.env /run/flannel/options.env
         - name: 50-flannel.conf
           content: |
             [Service]
+            Environment="ETCD_SSL_DIR=/etc/kubernetes/ssl"
             ExecStartPre=-/usr/bin/etcdctl mk /coreos.com/network/config '{"Network":"${pod_network}", "Backend": {"Type": "vxlan"}}'
       command: start
     - name: docker.service
