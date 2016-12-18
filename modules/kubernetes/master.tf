@@ -8,6 +8,7 @@ data "template_file" "master_cloud_config" {
     master_cert = "${base64encode(tls_locally_signed_cert.master.cert_pem)}"
     etcd_endpoints = "${var.etcd_endpoints}"
     kubernetes_version = "${var.kubernetes_version}"
+    master_host = "${var.master_hostname}.${var.private_dns_zone_name}"
     network_plugin = "" # leave this blank unless you want to use Calico
     dns_service_ip = "${var.dns_service_ip}"
     service_ip_range = "${var.service_ip_range}"
