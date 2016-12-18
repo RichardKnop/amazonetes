@@ -78,7 +78,7 @@ module "kubernetes" {
   master_common_name = "master"
   master_hostname = "master.${var.env}-master"
   master_instance_type = "${var.master_instance_type}"
-  master_subnet_cidr = "${element(private_subnet_cidrs, 0)}"
+  master_subnet_cidr = "${element(module.vpc.private_subnet_cidrs, 0)}"
   master_hostnum = "20"
   etcd_endpoints = "${module.etcd.endpoints}"
   worker_common_names = [
@@ -119,7 +119,8 @@ module "registry" {
   ]
 
   registry_instance_type = "${var.registry_instance_type}"
-  registry_private_ip = "${cidrhost(element(private_subnet_cidrs, 0), 5)}"
+  registry_subnet_cidr = "${element(module.vpc.private_subnet_cidrs, 0)}"
+  registry_hostnum = "5"
   registry_port = "${var.registry_port}"
 
   force_destroy = "${var.force_destroy}"

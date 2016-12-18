@@ -68,9 +68,14 @@ variable "registry_instance_type" {
   description = "EC2 instance type to use for docker registry"
 }
 
-variable "registry_private_ip" {
+variable "registry_subnet_cidr" {
   type        = "string"
-  description = "Private IP address to use for docker registry"
+  description = "Subnet CIDR for private docker registry"
+}
+
+variable "registry_hostnum" {
+  type        = "string"
+  description = "Given an IP address range in CIDR notation, this host number will be used to define IP address."
 }
 
 variable "registry_port" {

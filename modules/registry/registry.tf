@@ -17,6 +17,7 @@ resource "aws_instance" "registry" {
   ami = "${var.coreos_ami}"
   instance_type = "${var.registry_instance_type}"
   subnet_id = "${var.private_subnet_ids[count.index]}"
+  private_ip = "${cidrhost(var.registry_subnet_cidr, var.registry_hostnum)}"
   iam_instance_profile = "${aws_iam_instance_profile.registry.name}"
 
   root_block_device = {

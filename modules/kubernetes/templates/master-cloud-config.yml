@@ -28,9 +28,9 @@ write_files:
     content: |
       # for etcdctl
       export ETCDCTL_PEERS=${etcd_endpoints}
-      export ETCDCTL_CA_FILE=/etc/ssl/certs/ca.pem
-      export ETCDCTL_CERT_FILE=/etc/ssl/certs/master.pem
-      export ETCDCTL_KEY_FILE=/etc/ssl/certs/master-key.pem
+      export ETCDCTL_CA_FILE=/etc/kubernetes/ssl/ca.pem
+      export ETCDCTL_CERT_FILE=/etc/kubernetes/ssl/master.pem
+      export ETCDCTL_KEY_FILE=/etc/kubernetes/ssl/master-key.pem
   - path: /etc/flannel/options.env
     permissions: 0644
     content: |
