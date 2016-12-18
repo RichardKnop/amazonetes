@@ -78,12 +78,14 @@ coreos:
         [Install]
         WantedBy=multi-user.target
     - name: "docker.service"
+      command: start
       drop-ins:
         - name: "10-docker0.conf"
           content: |
             [Service]
             Environment="DOCKER_OPTS=--bip=172.17.0.1/24 --fixed-cidr=172.17.0.0/24"
     - name: locksmithd.service
+      command: start
       dropins:
         - name: 40-etcd-lock.conf
           contents: |

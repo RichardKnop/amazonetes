@@ -12,6 +12,7 @@ data "template_file" "worker_cloud_config" {
     master_host = "${aws_route53_record.master_alias.fqdn}"
     network_plugin = "" # leave this blank unless you want to use Calico
     dns_service_ip = "${var.dns_service_ip}"
+    pod_network = "${var.pod_network}"
     cluster_domain = "${var.cluster_domain}"
   }
 }

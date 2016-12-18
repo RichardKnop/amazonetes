@@ -31,14 +31,6 @@ write_files:
       export ETCDCTL_CA_FILE=/etc/kubernetes/ssl/ca.pem
       export ETCDCTL_CERT_FILE=/etc/kubernetes/ssl/master.pem
       export ETCDCTL_KEY_FILE=/etc/kubernetes/ssl/master-key.pem
-  - path: /etc/flannel/options.env
-    permissions: 0644
-    content: |
-      FLANNELD_IFACE=$private_ipv4 # replace with publicly routable IP
-      FLANNELD_ETCD_ENDPOINTS=${etcd_endpoints}
-      FLANNELD_ETCD_CAFILE=/etc/kubernetes/ssl/ca.pem
-      FLANNELD_ETCD_CERTFILE=/etc/kubernetes/ssl/master.pem
-      FLANNELD_ETCD_KEYFILE=/etc/kubernetes/ssl/master-key.pem
   - path: /etc/kubernetes/manifests/kube-apiserver.yaml
     permissions: 0644
     content: |
@@ -60,7 +52,7 @@ write_files:
           - --allow-privileged=true
           - --service-cluster-ip-range=${service_ip_range}
           - --secure-port=443
-          - --advertise-address=$private_ipv4 # replace with publicly routable IP
+          - --advertise-address=$private_ipv4
           - --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
           - --tls-cert-file=/etc/kubernetes/ssl/master.pem
           - --tls-private-key-file=/etc/kubernetes/ssl/master-key.pem
@@ -184,16 +176,16 @@ write_files:
             timeoutSeconds: 1
 
 coreos:
+  update:
+    reboot-strategy: off
+
   flannel:
     ip_masq: true
-    interface: eth2
+    interface: "$private_ipv4"
     etcd_endpoints: "${etcd_endpoints}"
     etcd_cafile: /etc/kubernetes/ssl/ca.pem
     etcd_certfile: /etc/kubernetes/ssl/master.pem
     etcd_keyfile: /etc/kubernetes/ssl/master-key.pem
-
-  update:
-    reboot-strategy: off
 
   units:
     - name: update-ca-certificates.service
@@ -208,13 +200,17 @@ coreos:
         [Install]
         WantedBy=multi-user.target
     - name: flanneld.service
+      command: start
       drop-ins:
-        - name: 50-flannel.conf
+        - name: 50-network-config.conf
           content: |
             [Service]
             Environment="ETCD_SSL_DIR=/etc/kubernetes/ssl"
-            ExecStartPre=-/usr/bin/etcdctl mk /coreos.com/network/config '{"Network":"${pod_network}", "Backend": {"Type": "vxlan"}}'
-      command: start
+            ExecStartPre=/usr/bin/etcdctl --endpoints ${etcd_endpoints} \
+             --ca-file /etc/kubernetes/ssl/ca.pem \
+             --cert-file /etc/kubernetes/ssl/master.pem \
+             --key-file /etc/kubernetes/ssl/master-key.pem \
+             mk /coreos.com/network/config '{"Network":"${pod_network}", "Backend": {"Type": "vxlan"}}'
     - name: docker.service
       command: start
       drop-ins:
@@ -250,7 +246,7 @@ coreos:
           --register-schedulable=false \
           --allow-privileged=true \
           --pod-manifest-path=/etc/kubernetes/manifests \
-          --hostname-override=$private_ipv4 \ # replace with publicly routable IP
+          --hostname-override=$private_ipv4 \
           --cluster-dns=${dns_service_ip} \
           --cluster-domain=${cluster_domain}
         Restart=always
