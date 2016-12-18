@@ -1,1 +1,4 @@
 .terraform/
+ssh.config
+*.tfstate
+*.tfstate.backup

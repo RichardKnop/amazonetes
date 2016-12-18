@@ -4,37 +4,37 @@ hostname: "${hostname}"
 
 write_files:
   - path: /etc/ssl/certs/ca.pem
-    permissions: 0600
+    permissions: 0644
     encoding: base64
     content: |
       ${ca_cert}
   - path: /etc/ssl/certs/etcd-server-key.pem
-    permissions: 0600
+    permissions: 0644
     encoding: base64
     content: |
       ${server_key}
   - path: /etc/ssl/certs/etcd-server.pem
-    permissions: 0600
+    permissions: 0644
     encoding: base64
     content: |
       ${server_cert}
   - path: /etc/ssl/certs/etcd-client-server-key.pem
-    permissions: 0600
+    permissions: 0644
     encoding: base64
     content: |
       ${client_server_key}
   - path: /etc/ssl/certs/etcd-client-server.pem
-    permissions: 0600
+    permissions: 0644
     encoding: base64
     content: |
       ${client_server_cert}
   - path: /etc/ssl/certs/etcd-client-key.pem
-    permissions: 0600
+    permissions: 0644
     encoding: base64
     content: |
       ${client_key}
   - path: /etc/ssl/certs/etcd-client.pem
-    permissions: 0600
+    permissions: 0644
     encoding: base64
     content: |
       ${client_cert}

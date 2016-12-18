@@ -10,6 +10,7 @@ data "template_file" "master_cloud_config" {
     kubernetes_version = "${var.kubernetes_version}"
     network_plugin = "" # leave this blank unless you want to use Calico
     dns_service_ip = "${var.dns_service_ip}"
+    service_ip_range = "${var.service_ip_range}"
     pod_network = "${var.pod_network}"
     cluster_domain = "${var.cluster_domain}"
   }

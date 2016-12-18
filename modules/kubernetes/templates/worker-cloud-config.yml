@@ -4,22 +4,22 @@ hostname: "${hostname}"
 
 write_files:
   - path: /etc/ssl/certs/ca.pem
-    permissions: 0600
+    permissions: 0644
     encoding: base64
     content: |
       ${ca_cert}
   - path: /etc/kubernetes/ssl/ca.pem
-    permissions: 0600
+    permissions: 0644
     encoding: base64
     content: |
       ${ca_cert}
   - path: /etc/kubernetes/ssl/worker-key.pem
-    permissions: 0600
+    permissions: 0644
     encoding: base64
     content: |
       ${worker_key}
   - path: /etc/kubernetes/ssl/worker.pem
-    permissions: 0600
+    permissions: 0644
     encoding: base64
     content: |
       ${worker_cert}
