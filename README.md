@@ -1,6 +1,6 @@
 # amazonetes
 
-This repository is a *work in progress*, please use it on your own risk.
+This repository is a **work in progress**, please use it on your own risk.
 
 This repository provides an opinionated Terraform module to deploy a Kubernetes cluster on AWS using CoreOS.
 
