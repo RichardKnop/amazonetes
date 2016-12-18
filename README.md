@@ -1,5 +1,7 @@
 # amazonetes
 
+This repository is a *work in progress*, please use it on your own risk.
+
 This repository provides an opinionated Terraform module to deploy a Kubernetes cluster on AWS using CoreOS.
 
 It creates an etcd cluster and private docker registry with S3 storage backend, sets up a private Route53 DNS and then creates Kubernetes master and worker nodes. All internal traffic is encrypted using self signed certificates.
