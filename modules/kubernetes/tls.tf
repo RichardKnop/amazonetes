@@ -26,7 +26,7 @@ resource "tls_cert_request" "master" {
 
   dns_names = [
     # private IP
-    "${var.master_private_ip}",
+    "${cidrhost(var.master_subnet_cidr, var.master_hostnum)}",
     # private DNS alias
     "${var.master_hostname}.${var.private_dns_zone_name}",
     # hostname
@@ -62,7 +62,7 @@ resource "tls_cert_request" "admin" {
 
   dns_names = [
     # private IP
-    "${var.master_private_ip}",
+    "${cidrhost(var.master_subnet_cidr, var.master_hostnum)}",
     # private DNS alias
     "${var.master_hostname}.${var.private_dns_zone_name}",
     # hostname
@@ -99,7 +99,7 @@ resource "tls_cert_request" "worker" {
 
   dns_names = [
     # private IP
-    "${cidrhost(element(var.private_subnet_cidrs, count.index % length(var.private_subnet_cidrs)), var.worker_private_ip_from + (count.index / length(var.private_subnet_cidrs)))}",
+    "${cidrhost(element(var.private_subnet_cidrs, count.index % length(var.private_subnet_cidrs)), var.worker_hostnum_from + (count.index / length(var.private_subnet_cidrs)))}",
     # private DNS alias
     "${var.worker_hostnames[count.index]}.${var.private_dns_zone_name}",
     # hostname

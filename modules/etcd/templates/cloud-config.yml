@@ -48,7 +48,7 @@ write_files:
       export ETCDCTL_KEY_FILE=/etc/ssl/certs/etcd-client-key.pem
 
       # for lockmisthctl. Note: LOCKSMITHD_ENDPOINT only take one url
-      export LOCKSMITHCTL_ENDPOINT=${endpoint}
+      export LOCKSMITHCTL_ENDPOINT=${first_endpoint}
       export LOCKSMITHCTL_ETCD_CAFILE=$ETCDCTL_CA_FILE
       export LOCKSMITHCTL_ETCD_CERTFILE=$ETCDCTL_CERT_FILE
       export LOCKSMITHCTL_ETCD_KEYFILE=$ETCDCTL_KEY_FILE
@@ -58,7 +58,7 @@ coreos:
     reboot-strategy: etcd-lock
 
   locksmith:
-    endpoint: ${endpoint}:2379
+    endpoint: ${first_endpoint}:2379
     etcd_cafile: /etc/ssl/certs/ca.pem
     etcd_certfile: /etc/ssl/certs/etcd-client.pem
     etcd_keyfile: /etc/ssl/certs/etcd-client-key.pem
@@ -127,8 +127,8 @@ coreos:
           quay.io/coreos/etcd:v3.0.15 etcd \
           -discovery-srv stage-etcd.local \
           -initial-cluster-token stage-etcd \
-          -advertise-client-urls ${endpoint}:2379 \
-          -initial-advertise-peer-urls ${endpoint}:2380 \
+          -advertise-client-urls ${first_endpoint}:2379 \
+          -initial-advertise-peer-urls ${first_endpoint}:2380 \
           -listen-client-urls https://0.0.0.0:2379 \
           -listen-peer-urls https://0.0.0.0:2380
         [Install]

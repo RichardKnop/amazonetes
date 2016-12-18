@@ -29,7 +29,7 @@ resource "tls_cert_request" "server" {
 
   dns_names = [
     # private IP
-    "${cidrhost(element(var.private_subnet_cidrs, count.index % length(var.private_subnet_cidrs)), var.etcd_private_ip_from + (count.index / length(var.private_subnet_cidrs)))}",
+    "${cidrhost(element(var.private_subnet_cidrs, count.index % length(var.private_subnet_cidrs)), var.etcd_hostnum_from + (count.index / length(var.private_subnet_cidrs)))}",
     # private DNS alias
     "${var.etcd_hostnames[count.index]}.${var.private_dns_zone_name}",
     # hostname
@@ -67,7 +67,7 @@ resource "tls_cert_request" "client_server" {
 
   dns_names = [
     # private IP
-    "${cidrhost(element(var.private_subnet_cidrs, count.index % length(var.private_subnet_cidrs)), var.etcd_private_ip_from + (count.index / length(var.private_subnet_cidrs)))}",
+    "${cidrhost(element(var.private_subnet_cidrs, count.index % length(var.private_subnet_cidrs)), var.etcd_hostnum_from + (count.index / length(var.private_subnet_cidrs)))}",
     # private DNS alias
     "${var.etcd_hostnames[count.index]}.${var.private_dns_zone_name}",
     # hostname
@@ -106,7 +106,7 @@ resource "tls_cert_request" "client" {
 
   dns_names = [
     # private IP
-    "${cidrhost(element(var.private_subnet_cidrs, count.index % length(var.private_subnet_cidrs)), var.etcd_private_ip_from + (count.index / length(var.private_subnet_cidrs)))}",
+    "${cidrhost(element(var.private_subnet_cidrs, count.index % length(var.private_subnet_cidrs)), var.etcd_hostnum_from + (count.index / length(var.private_subnet_cidrs)))}",
     # private DNS alias
     "${var.etcd_hostnames[count.index]}.${var.private_dns_zone_name}",
     # hostname

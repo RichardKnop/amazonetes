@@ -29,6 +29,8 @@ write_files:
       # for etcdctl
       export ETCDCTL_PEERS=${etcd_endpoints}
       export ETCDCTL_CA_FILE=/etc/ssl/certs/ca.pem
+      export ETCDCTL_CERT_FILE=/etc/ssl/certs/master.pem
+      export ETCDCTL_KEY_FILE=/etc/ssl/certs/master-key.pem
   - path: /etc/flannel/options.env
     permissions: 0644
     content: |
@@ -206,10 +208,6 @@ coreos:
             ExecStartPre=/usr/bin/ln -sf /etc/flannel/options.env /run/flannel/options.env
         - name: 50-flannel.conf
           content: |
-            [Unit]
-            Requires=etcd2.service
-            After=etcd2.service
-
             [Service]
             ExecStartPre=-/usr/bin/etcdctl mk /coreos.com/network/config '{"Network":"${pod_network}", "Backend": {"Type": "vxlan"}}'
       command: start
@@ -242,12 +240,12 @@ coreos:
           --mount volume=dns,target=/etc/resolv.conf"
 
         ExecStart=/usr/lib/coreos/kubelet-wrapper \
-          --api-servers=http://127.0.0.1:8080 \
+          --kubeconfig=http://127.0.0.1:8080 \
           --network-plugin-dir=/etc/kubernetes/cni/net.d \
           --network-plugin=${network_plugin} \
           --register-schedulable=false \
           --allow-privileged=true \
-          --config=/etc/kubernetes/manifests \
+          --pod-manifest-path=/etc/kubernetes/manifests \
           --hostname-override=$private_ipv4 \ # replace with publicly routable IP
           --cluster-dns=${dns_service_ip} \
           --cluster-domain=${cluster_domain}

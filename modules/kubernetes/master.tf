@@ -20,7 +20,7 @@ resource "aws_instance" "master" {
   ami = "${var.coreos_ami}"
   instance_type = "${var.master_instance_type}"
   subnet_id = "${element(var.private_subnet_ids, 0)}"
-  private_ip = "${var.master_private_ip}"
+  private_ip = "${cidrhost(var.master_subnet_cidr, var.master_hostnum)}"
   iam_instance_profile = "${aws_iam_instance_profile.master.name}"
 
   root_block_device = {

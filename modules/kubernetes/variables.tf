@@ -83,9 +83,14 @@ variable "master_instance_type" {
   description = "EC2 instance type to use for master node"
 }
 
-variable "master_private_ip" {
+variable "master_subnet_cidr" {
   type        = "string"
-  description = "Private IP address to use for master node"
+  description = "Subnet CIDR for master node"
+}
+
+variable "master_hostnum" {
+  type        = "string"
+  description = "Given an IP address range in CIDR notation, this host number will be used to define IP address."
 }
 
 variable "etcd_endpoints" {
@@ -108,9 +113,9 @@ variable "worker_instance_type" {
   description = "EC2 instance type to use for worker nodes"
 }
 
-variable "worker_private_ip_from" {
+variable "worker_hostnum_from" {
   type        = "string"
-  description = "Worker private IPs will start from 10.X.X.worker_private_ip_from"
+  description = "Given an IP address range in CIDR notation, this host number will be used to define IP addresses."
 }
 
 variable "kubernetes_version" {

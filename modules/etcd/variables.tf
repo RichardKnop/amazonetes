@@ -83,9 +83,9 @@ variable "etcd_instance_type" {
   description = "EC2 instance type to use for cluster nodes"
 }
 
-variable "etcd_private_ip_from" {
+variable "etcd_hostnum_from" {
   type        = "string"
-  description = "ETCD nodes private IPs will start from 10.X.X.etcd_private_ip_from"
+  description = "Given an IP address range in CIDR notation, this host number will be used to define IP addresses."
 }
 
 variable "force_destroy" {

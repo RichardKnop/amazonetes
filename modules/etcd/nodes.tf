@@ -3,9 +3,8 @@ data "template_file" "cloud_config" {
   template = "${file("${path.module}/templates/cloud-config.yml")}"
 
   vars {
-    etcd_private_ip_from = "${var.etcd_private_ip_from}"
     hostname = "${var.etcd_hostnames[count.index]}"
-    endpoint = "${format("https://%s.%s", var.etcd_hostnames[count.index], var.private_dns_zone_name)}"
+    first_endpoint = "${format("https://%s.%s", var.etcd_hostnames[count.index], var.private_dns_zone_name)}"
     etcd_endpoints = "${join(",", formatlist("https://%s.%s:2379", var.etcd_hostnames, var.private_dns_zone_name))}"
     ca_cert = "${base64encode(var.ca_cert_pem)}"
     server_key = "${base64encode(tls_private_key.server.*.private_key_pem[count.index])}"
@@ -24,7 +23,7 @@ resource "aws_instance" "etcd" {
   ami = "${var.coreos_ami}"
   instance_type = "${var.etcd_instance_type}"
   subnet_id = "${element(var.private_subnet_ids, count.index % length(var.private_subnet_ids))}"
-  private_ip = "${cidrhost(element(var.private_subnet_cidrs, count.index % length(var.private_subnet_cidrs)), var.etcd_private_ip_from + (count.index / length(var.private_subnet_cidrs)))}"
+  private_ip = "${cidrhost(element(var.private_subnet_cidrs, count.index % length(var.private_subnet_cidrs)), var.etcd_hostnum_from + (count.index / length(var.private_subnet_cidrs)))}"
   iam_instance_profile = "${aws_iam_instance_profile.etcd.name}"
 
   root_block_device = {

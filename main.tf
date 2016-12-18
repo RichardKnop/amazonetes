@@ -49,7 +49,7 @@ module "etcd" {
     "etcd1.${var.env}-etcd",
   ]
   etcd_instance_type = "${var.etcd_instance_type}"
-  etcd_private_ip_from = "10"
+  etcd_hostnum_from = "10"
 
   force_destroy = "${var.force_destroy}"
 }
@@ -78,7 +78,8 @@ module "kubernetes" {
   master_common_name = "master"
   master_hostname = "master.${var.env}-master"
   master_instance_type = "${var.master_instance_type}"
-  master_private_ip = "${cidrhost(element(private_subnet_cidrs, 0), 20)}"
+  master_subnet_cidr = "${element(private_subnet_cidrs, 0)}"
+  master_hostnum = "20"
   etcd_endpoints = "${module.etcd.endpoints}"
   worker_common_names = [
     "worker0",
@@ -89,7 +90,7 @@ module "kubernetes" {
     "worker1.${var.env}-worker",
   ]
   worker_instance_type = "${var.worker_instance_type}"
-  worker_private_ip_from = "30"
+  worker_hostnum_from = "30"
 
   force_destroy = "${var.force_destroy}"
 }
